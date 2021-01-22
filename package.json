@@ -1,0 +1,33 @@
+{
+  "name": "zoom-api-jwt",
+  "version": "1.0.0",
+  "description": "Zoom API JWT Sample app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Anderley Candela",
+  "license": "ISC",
+  "dependencies": {
+    "@zoomus/websdk": "^1.7.5",
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "keywords": [
+    "jwt"
+  ],
+  "bugs": {
+    "url": "https://github.com/zoom/zoom-api-jwt/issues"
+  },
+  "homepage": "https://github.com/zoom/zoom-api-jwt#readme"
+}
