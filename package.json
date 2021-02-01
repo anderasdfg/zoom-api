@@ -10,7 +10,7 @@
   "author": "Anderley Candela",
   "license": "ISC",
   "dependencies": {
-    "@zoomus/websdk": "^1.7.5",
+    "@zoomus/websdk": "^1.8.6",
     "axios": "^0.21.1",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",

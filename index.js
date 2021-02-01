@@ -72,6 +72,7 @@ app.post(
                 enforce_login: false,
                 global_dial_in_countries: [],
                 registrants_email_notification: false,
+				allow_multiple_devices: false,
             },
         };
 
@@ -83,11 +84,12 @@ app.post(
                 }
             )
             .then((response) => {
-                console.log("respuesta del api owo");
+               
                 console.log(response.data);
                 console.log(response.data.id);
                 var start_url = response.data.start_url;
                 var join_url = response.data.join_url;
+				var id = response.data.id;
                 console.log(response.data.password);
 
                 var result = {
@@ -96,8 +98,10 @@ app.post(
                         errordescription: ""
                     },
                     start_url: start_url,
-                    join_url: join_url
+                    join_url: join_url,
+					id: id
                 }
+				console.log(result);
                 res.send(result);
             })
             .catch((err) => {
@@ -113,13 +117,162 @@ app.post(
                             errordescription: err.response.data.message
                         },
                         start_url: "",
-                        join_url: ""
+                        join_url: "",
+						id: "",
                     }
+					console.log(result);
                     res.send(result);
                 }
             });
     }
 );
+
+app.get("/info/:id/:key/:secret/", async(req, res) => {
+    var id = req.params.id;
+    var key = req.params.key;
+    var secret = req.params.secret;
+    const token = crearToken(key, secret);
+    var response = await statusMeetings(id, token).catch();
+    if (!response.code) {
+        res.send(response.data);
+    } else res.send(response);
+    //  return response;
+});
+
+app.get("/linkmedico/:id/:key/:secret/", async(req, res) => {
+    var id = req.params.id;
+    var key = req.params.key;
+    var secret = req.params.secret;
+    const token = crearToken(key, secret);
+    var response = await statusMeetings(id, token).catch();
+    if (!response.code) {
+        var response =
+            `<div class="loader"></div>
+                <script type="text/javascript">
+                setTimeout(function(){ 
+                    window.location.href = "` +
+            response.data.start_url +
+            `";
+                },3000);      
+                     </script>
+                     <style>
+                     div{
+                        position: absolute;
+                        top: 50%; /* Buscamos el centro horizontal (relativo) del navegador */
+                        left: 50%; /* Buscamos el centro vertical (relativo) del navegador */
+                        width: 120 px; /* Definimos el ancho del objeto a centrar */
+                        height: 120px; /* Definimos el alto del objeto a centrar */
+                        margin-top: -60px; /* Restamos la mitad de la altura del objeto con un margin-top */
+                        margin-left: -60px; /* Restamos la mitad de la anchura del objeto con un margin-left */
+                     }
+                     .loader {
+                        border: 16px solid #f3f3f3; /* Light grey */
+                        border-top: 16px solid #3498db; /* Blue */
+                        border-radius: 50%;
+                        width: 120px;
+                        height: 120px;
+                        animation: spin 2s linear infinite;
+                      }
+                      
+                      @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                      }
+                     </style>`;
+        res.send(response);
+    } else res.send(response);
+    //  return response;
+});
+
+app.get("/linkpaciente/:id/:key/:secret/", async(req, res) => {
+    var id = req.params.id;
+    var key = req.params.key;
+    var secret = req.params.secret;
+    const token = crearToken(key, secret);
+    var response = await statusMeetings(id, token).catch();
+    if (!response.code) {
+        var response =
+            `<div class="loader"></div>
+                <script type="text/javascript">
+                setTimeout(function(){ 
+                    window.location.href = "` +
+            response.data.join_url +
+            `";
+                },3000);      
+                     </script>
+                     <style>
+                     div{
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        width: 120 px;
+                        height: 120px;
+                        margin-top: -60px;
+                        margin-left: -60px;
+                     }
+                     .loader {
+                        border: 16px solid #f3f3f3;
+                        border-top: 16px solid #3498db; 
+                        border-radius: 50%;
+                        width: 120px;
+                        height: 120px;
+                        animation: spin 2s linear infinite;
+                      }
+                      
+                      @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                      }
+                     </style>`;
+        res.send(response);
+    } else res.send(response);
+    //  return response;
+});
+
+//Crear token
+function crearToken(api_key, api_secret) {
+    return jwt.sign({
+            aud: null,
+            iss: api_key,
+            exp: Date.parse(new Date(new Date().getTime() + 60 * 60 * 24 * 1000)),
+            iat: Date.parse(new Date()),
+        },
+        api_secret
+    );
+}
+
+//verificar token
+function verificarToken(token, api_key, api_secret) {
+    var verificado = jwt.verify(token, api_secret, function(err, decoded) {
+        if (err) {
+            console.log(err);
+        } else {
+            //  console.log('deco',decoded)
+            if (decoded.iss == api_key) {
+                if (decoded.exp < new Date().getTime()) {
+                    //  console.log(decoded.exp +' < ' +new Date().getTime())
+                    return false;
+                } else {
+                    //   console.log(decoded.exp +' > ' +new Date().getTime())
+                    return true;
+                }
+            }
+        }
+    });
+    return verificado;
+}
+
+//obtener estdao de reunion
+async function statusMeetings(id, token) {
+    var response = await axios
+        .get(`https://api.zoom.us/v2/meetings/${id}`, {
+            headers: { authorization: "Bearer " + token },
+        })
+        .catch((err) => err.response.data);
+
+    return response;
+}
+
 
 app.listen(app.get("port"), () =>
     console.log(`Zoom-api listening on port ${app.get("port")}!`)
